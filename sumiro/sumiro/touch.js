@@ -71,6 +71,15 @@
     '#tc .b-dodge{width:60px;height:60px;right:calc(36px + env(safe-area-inset-right));bottom:calc(118px + env(safe-area-inset-bottom))}' +
     '#tc .b-parry{width:54px;height:54px;right:calc(118px + env(safe-area-inset-right));bottom:calc(100px + env(safe-area-inset-bottom))}' +
     '#tc .b-use{width:50px;height:50px;right:calc(190px + env(safe-area-inset-right));bottom:calc(30px + env(safe-area-inset-bottom))}' +
+    '#tc button.locked{display:none}' +
+    '#tc-rotate{display:none;position:fixed;inset:0;z-index:2000;background:#b1a080;color:#2a2622;place-items:center;text-align:center;padding:24px;box-sizing:border-box;font:17px/1.5 Georgia,serif;touch-action:none}' +
+    '#tc-rotate div{display:grid;gap:18px;justify-items:center;max-width:300px}' +
+    '#tc-rotate svg{width:64px;height:64px;animation:tc-turn 2.4s ease-in-out infinite}' +
+    '#tc-rotate h2{margin:0;font:italic 28px Georgia,serif;letter-spacing:.04em}' +
+    '#tc-rotate p{margin:0}' +
+    '@keyframes tc-turn{0%,20%{transform:rotate(0)}50%,80%{transform:rotate(-90deg)}100%{transform:rotate(0)}}' +
+    '@media (prefers-reduced-motion:reduce){#tc-rotate svg{animation:none;transform:rotate(-90deg)}}' +
+    '@media (orientation:portrait){#tc-rotate{display:grid}}' +
     '#tc .b-pause{width:44px;height:44px;right:calc(16px + env(safe-area-inset-right));top:calc(14px + env(safe-area-inset-top));border-radius:8px;font-size:16px;font-style:normal}';
   var style = document.createElement('style');
   style.textContent = css;
@@ -88,6 +97,47 @@
     '<button class="b-use" data-b="3" aria-label="Interact or drink">Use</button>' +
     '<button class="b-pause" data-b="9" aria-label="Pause">II</button>';
   document.body.appendChild(root);
+
+  // Landscape only: in portrait, cover everything with a "turn your phone" screen.
+  var rotate = document.createElement('div');
+  rotate.id = 'tc-rotate';
+  rotate.setAttribute('role', 'dialog');
+  rotate.setAttribute('aria-label', 'Turn your phone sideways');
+  rotate.innerHTML =
+    '<div><svg viewBox="0 0 64 64" fill="none" stroke="#2a2622" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">' +
+    '<rect x="20" y="6" width="24" height="52" rx="4"/><path d="M29 51h6"/></svg>' +
+    '<h2>Sumiro</h2><p>Turn your phone sideways to play.</p></div>';
+  document.body.appendChild(rotate);
+  var portraitMq = matchMedia('(orientation:portrait)');
+
+  // Strike/Parry need the sword (Chapter Four) and Step needs the ink step
+  // (after Chapter One). Until then the game ignores them, so hide the buttons.
+  var CHAPTERS = ['ch1_climb', 'ch2_pass', 'ch3_pines', 'ch4_temple', 'ch5_sea', 'ch6_summit'];
+  var btnSword = root.querySelectorAll('.b-attack, .b-parry');
+  var btnStep = root.querySelector('.b-dodge');
+  function readAbilities() {
+    var ab = {};
+    try {
+      var s = JSON.parse(localStorage.getItem('sumiro.save.v1') || localStorage.getItem('ink_wanderer.save.v1') || 'null');
+      if (s) {
+        var a = s.abilities || {};
+        var ch = CHAPTERS.indexOf(s.chapter);
+        ab.sword = !!a.sword || ch > 3;      // chapters after the temple always have it
+        ab.inkStep = !!a.inkStep || ch > 0;
+      }
+    } catch (e) {}
+    var ink = document.querySelector('#ink-ui .ink.on'); // HUD shows this once the ink step is earned
+    if (ink) ab.inkStep = true;
+    return ab;
+  }
+  var lastAbilityCheck = -1e9;
+  function updateLocks(now) {
+    if (now - lastAbilityCheck < 1000) return;
+    lastAbilityCheck = now;
+    var ab = readAbilities();
+    Array.prototype.forEach.call(btnSword, function (el) { el.classList.toggle('locked', !ab.sword); });
+    btnStep.classList.toggle('locked', !ab.inkStep);
+  }
 
   var stick = root.querySelector('.stick');
   var knob = root.querySelector('.knob');
@@ -187,7 +237,42 @@
     holds = {};
     Array.prototype.forEach.call(root.querySelectorAll('button.down'), function (el) { el.classList.remove('down'); });
   }
-  function tick() {
+  // ---- Keep the game sized to the screen ----------------------------------
+  // The game resizes only on window "resize". On phones that event can fire
+  // mid-rotation (or while entering fullscreen) with the old size, leaving the
+  // canvas at its portrait width. Re-send it whenever the canvas doesn't match.
+  var lastFix = 0;
+  function fitCheck(now) {
+    if (now - lastFix < 250) return;
+    var c = document.querySelector('body > canvas');
+    if (!c) return;
+    if (Math.abs(c.clientWidth - window.innerWidth) > 2 || Math.abs(c.clientHeight - window.innerHeight) > 2) {
+      lastFix = now;
+      window.dispatchEvent(new Event('resize'));
+    }
+  }
+  function nudgeResize() {
+    [80, 300, 800].forEach(function (ms) {
+      setTimeout(function () { window.dispatchEvent(new Event('resize')); }, ms);
+    });
+  }
+  window.addEventListener('orientationchange', nudgeResize);
+  document.addEventListener('fullscreenchange', nudgeResize);
+  document.addEventListener('webkitfullscreenchange', nudgeResize);
+  if (window.visualViewport) window.visualViewport.addEventListener('resize', nudgeResize);
+
+  var wasPortrait = false;
+  function tick(now) {
+    now = now || performance.now();
+    fitCheck(now);
+    updateLocks(now);
+    // Turning to portrait mid-play pauses the game, so nothing happens unseen.
+    var portrait = portraitMq.matches;
+    if (portrait && !wasPortrait && root.classList.contains('on')) {
+      releaseAll();
+      releaseAt[9] = now + MIN_PRESS_MS;
+    }
+    wasPortrait = portrait;
     var ui = document.getElementById('ink-ui');
     var blocking = !ui || ui.querySelector('.menu.on, .credits.on, .closing.on');
     var boot = document.getElementById('boot');

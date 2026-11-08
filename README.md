@@ -57,7 +57,7 @@ The input layer also recognizes a connected gamepad.
 
 ### Touch (phones and tablets)
 
-On touch-first devices, `touch.js` adds on-screen controls. Turn the phone sideways for the best view.
+On touch-first devices, `touch.js` adds on-screen controls. The game plays in landscape only; in portrait it asks you to turn the phone (and pauses if you turn it mid-game). Step appears once the ink step is earned, and Strike and Parry once the sword is found in Chapter Four.
 
 | Action | Touch |
 | --- | --- |
