@@ -53,7 +53,21 @@ Click inside the game to give it focus and enable mouse look.
 | Drink / use | `F` |
 | Pause / back | `Esc` or `P` |
 
-The input layer also recognizes a connected gamepad. Keyboard and mouse are the recommended way to play this export.
+The input layer also recognizes a connected gamepad.
+
+### Touch (phones and tablets)
+
+On touch-first devices, `touch.js` adds on-screen controls. Turn the phone sideways for the best view.
+
+| Action | Touch |
+| --- | --- |
+| Move | Left thumb anywhere on the left side (push fully to sprint) |
+| Look | Drag with the right thumb |
+| Jump / Strike / Step / Parry / Use | Buttons at the bottom right |
+| Pause | `II` button at the top right |
+| Menus | Tap the menu items |
+
+Touch devices also render at a slightly lower resolution to keep the frame rate up.
 
 ## Project layout
 
@@ -62,6 +76,7 @@ sumiro/
 ├── .nojekyll                 # Keeps static hosts from processing the build with Jekyll
 └── sumiro/                   # Game web root — deploy or serve this directory
     ├── index.html             # Game entry page
+    ├── touch.js               # On-screen touch controls (loaded on phones and tablets only)
     ├── bundle/                # JavaScript modules and WebAssembly decoder assets
     └── assets/                # 3D models, textures, level data, and UI artwork
 ```
