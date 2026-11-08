@@ -7,6 +7,7 @@
 ## Contents
 
 - [How it was made](#how-it-was-made)
+- [Languages and technology](#languages-and-technology)
 - [Play locally](#play-locally)
 - [Controls](#controls)
 - [Project layout](#project-layout)
@@ -31,6 +32,39 @@ Sumiro is an original game built in about 24 hours with AI tools, starting from 
 | **6. Build the scenes, then iterate** | Each concept was built into a playable 3D level. The loop was: play it, report bugs, let the agents fix them and improve the objects, repeat. | Claude Code, Three.js |
 
 The six chapters in `assets/levels/` (climb, pass, pines, temple, sea, summit) are the result of steps 5 and 6.
+
+## Languages and technology
+
+Sumiro is written in **JavaScript** and runs entirely in the browser on **Three.js**. There is no server code: the game is static HTML, JavaScript modules and asset files.
+
+### Languages
+
+| Language | Where it's used |
+| --- | --- |
+| **JavaScript** (modern ES modules) | All game logic: player movement, climbing, camera, collision, combat, chapters, HUD, audio and effects. Shipped as 50 minified modules in `bundle/` (about 2.5 MB). |
+| **GLSL** (OpenGL Shading Language) | Custom shaders for the ink-wash look: ink material, ink bleed, mist, backdrop layers, sea, crows and combat effects. Written as `ShaderMaterial`/`RawShaderMaterial` and `onBeforeCompile` patches of Three.js materials. |
+| **HTML and CSS** | The entry page, the boot screen and the HUD/menu styling. |
+| **WebAssembly** | Only Google's Draco mesh decoder (`draco_decoder-*.wasm`), used to decompress 3D models. Not game code. |
+
+The build only contains compiled JavaScript, with types and comments removed, so whether the original source was JavaScript or TypeScript can't be told from this repository. `touch.js` (the mobile controls) is plain, unminified JavaScript added after the build.
+
+### Engine, libraries and APIs
+
+- **[Three.js](https://threejs.org) r187:** rendering through `WebGLRenderer` on WebGL 2, with `SkinnedMesh` + `AnimationMixer` for the character and `InstancedMesh` for crow swarms and ink smears and footprints. The painted sky and distant hills are layered backdrop meshes, not a skybox.
+- **Three.js loaders:** `GLTFLoader` with `DRACOLoader`, `KTX2Loader` and the Meshopt decoder for compressed models; Draco decoding runs in Web Workers.
+- **Vite** (with the **Rolldown** bundler) built the project. Each chapter, environment piece and effect is a separate module loaded on demand, which is why `bundle/` file names carry content hashes.
+- **Web Audio API:** sound is generated in code from oscillators, filters, gain envelopes and a convolver reverb. The game ships with no audio files.
+- **Custom systems:** collision, ledge climbing, combat and the scarf/cloth movement are the game's own code. No physics engine or other game framework is used.
+- **Browser APIs:** Pointer Lock (mouse look), Gamepad API, Fullscreen and `localStorage` (save game and touch layout).
+
+### Asset formats
+
+| Format | Count | Used for |
+| --- | --- | --- |
+| `.glb` (binary glTF) | 26 | 3D models: player, cliffs, pines, gate, bridge stairs, crows, levels |
+| `.webp`, `.png`, `.jpg` | 66 | Textures, painted backdrops, UI artwork |
+| `.json` | 6 | Level and placement data, backdrop layers, cloth setup |
+| `.bin` | 1 | Ground data for Chapter One |
 
 ## Play locally
 
