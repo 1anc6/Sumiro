@@ -61,11 +61,13 @@ On touch-first devices, `touch.js` adds on-screen controls. The game plays in la
 
 | Action | Touch |
 | --- | --- |
-| Move | Left thumb anywhere on the left side (push fully to sprint) |
+| Move | Joystick at the bottom left; touching elsewhere on the left side brings it under your thumb (push fully to sprint) |
 | Look | Drag with the right thumb |
 | Jump / Strike / Step / Parry / Use | Buttons at the bottom right |
 | Pause | `II` button at the top right |
 | Menus | Tap the menu items |
+
+To rearrange the controls, pause the game and tap **Touch controls** at the bottom right. Drag any control to move it, tap one to change its size, set the overall opacity, then **Save**. **Reset** restores the default layout. The layout is saved on the device.
 
 Touch devices also render at a slightly lower resolution to keep the frame rate up.
 
