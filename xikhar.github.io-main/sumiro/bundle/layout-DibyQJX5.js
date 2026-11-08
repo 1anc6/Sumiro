@@ -1,0 +1,1 @@
+var e=[3,16,-66,-50],t=[5.65,-59.4],n=[1.64,1.44],r=1.25,i=.025,a=[0,-.0065,7.9385],o=(e,t)=>a[0]*e+a[1]*t+a[2];function s(){let e=[];for(let t=3;t<=199;t+=7)e.push(t);for(let t=258;t<=298;t+=6)e.push(t);return e}export{e as a,r as i,t as n,o,n as r,s,i as t};

@@ -1,0 +1,1 @@
+var e={x:14.23,y:8.35,z:-61.255,yaw:Math.PI/180*-45.4,span:6.08};function t(t,n,r,i={}){let a=Math.cos(e.yaw),o=Math.sin(e.yaw);return i.x=e.x+t*a+r*o,i.y=e.y+n,i.z=e.z-t*o+r*a,i}var n=[t(-3.04,.65,0),t(3.04,.65,0)],r=[[202,0,0,0],[214,2,.45,.17]];export{t as i,e as n,r,n as t};
