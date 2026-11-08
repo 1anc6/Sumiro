@@ -5,11 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Sumiro</title>
     <link rel="icon" href="data:," />
-    <style>html,body{background:#b1a080;height:100%;margin:0;overflow:hidden}canvas{outline:none;display:block}#boot{color:#2a2622;letter-spacing:.1em;background:#b1a080;place-items:center;font:italic 18px Georgia,serif;display:grid;position:fixed;inset:0}#boot div{justify-items:center;gap:14px;display:grid}#boot h1{letter-spacing:.04em;margin:0;font:italic 34px Georgia,serif}#boot p{margin:0;animation:2.6s ease-in-out infinite boot-breath}#boot i{background:#2a26222e;width:180px;height:2px;display:block;overflow:hidden}#boot i:after{content:"";background:#2a2622;width:34%;height:100%;animation:1.9s ease-in-out infinite alternate boot-stroke;display:block}@keyframes boot-stroke{0%{transform:translate(-20%)}to{transform:translate(310%)}}@keyframes boot-breath{50%{opacity:.45}}</style>
+    <style>html,body{background:#b1a080;height:100%;margin:0;overflow:hidden}canvas{outline:none;display:block}#boot{color:#2a2622;letter-spacing:.1em;background:#b1a080;place-items:center;font:italic 18px Georgia,serif;display:grid;position:fixed;inset:0}#boot div{justify-items:center;gap:14px;display:grid}#boot h1{letter-spacing:.04em;margin:0;font:italic 34px Georgia,serif}#boot p{margin:0;animation:2.6s ease-in-out infinite boot-breath}#boot i{background:#2a26222e;width:180px;height:2px;display:block;overflow:hidden}#boot i:after{content:"";background:#2a2622;width:34%;height:100%;animation:1.9s ease-in-out infinite alternate boot-stroke;display:block}@keyframes boot-stroke{0%{transform:translate(-20%)}to{transform:translate(310%)}}@keyframes boot-breath{50%{opacity:.45}}
+#desk-note{display:none;position:fixed;inset:0;z-index:1000;background:#b1a080;color:#2a2622;place-items:center;padding:24px;box-sizing:border-box;text-align:center;font:17px/1.5 Georgia,serif}
+#desk-note div{max-width:340px;display:grid;gap:16px;justify-items:center}
+#desk-note h2{margin:0;font:italic 30px Georgia,serif;letter-spacing:.04em}
+#desk-note p{margin:0}
+#desk-note button{font:italic 16px Georgia,serif;color:#2a2622;background:none;border:1px solid #2a2622;padding:10px 22px;min-height:44px;cursor:pointer}
+@media (pointer:coarse) and (hover:none){#desk-note{display:grid}}
+#desk-note.dismissed{display:none}</style>
     <script type="module" crossorigin src="./bundle/index-VEMJneSs.js"></script>
     <link rel="modulepreload" crossorigin href="./bundle/rolldown-runtime-DK3Fl9T5.js">
   </head>
   <body>
+    <div id="desk-note" role="dialog" aria-labelledby="desk-note-title"><div>
+      <h2 id="desk-note-title">Sumiro</h2>
+      <p>This game is best played on a computer with a keyboard and mouse. Touch controls aren't supported yet.</p>
+      <button type="button" onclick="document.getElementById('desk-note').classList.add('dismissed')">Continue anyway</button>
+    </div></div>
     <div id="boot"><div><h1>Sumiro</h1><p>grinding ink</p><i></i></div></div>
   </body>
 </html>
