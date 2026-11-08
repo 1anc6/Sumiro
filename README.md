@@ -6,6 +6,7 @@
 
 ## Contents
 
+- [How it was made](#how-it-was-made)
 - [Play locally](#play-locally)
 - [Controls](#controls)
 - [Project layout](#project-layout)
@@ -13,6 +14,23 @@
 - [Technical notes](#technical-notes)
 - [Troubleshooting](#troubleshooting)
 - [Contributing](#contributing)
+
+## How it was made
+
+Sumiro is an original game built in about 24 hours with AI tools, starting from a single generated video. The project was inspired by **Video2Game** by [@OdinLovis](https://x.com/OdinLovis).
+
+**Stack:** Claude Opus 5.5 · Flux 3 Max (via [fal](https://fal.ai)) · GPT Image · [Tripo](https://www.tripo3d.ai) · Blender · [Three.js](https://threejs.org)
+
+| Step | What happened | Tools |
+| --- | --- | --- |
+| **1. Generate a video** | A short video of a wanderer climbing misty mountain stairs became the reference for everything: the look, the world and the character. | Flux 3 Max on fal |
+| **2. Build the world** | Frames from the video were screenshotted, the assets (cliffs, pines, gate, stairs, rocks) were rebuilt in Blender and placed in a Three.js scene. Claude Code agents built and checked pieces in parallel. | Blender, Three.js, Claude Code |
+| **3. Make the character** | The wanderer was screenshotted from the video, turned into four turnaround views, then into a 3D model. Claude added cloth physics and animations. | GPT Image, Tripo, Claude Opus |
+| **4. Test the gameplay** | The first prototype (the cliff path of Chapter One) was played to confirm movement and camera worked before building more. | Browser playtesting |
+| **5. Concept every level** | Using the established art style, up to eight concept images were made per level: the rope bridge, the ink-step leaps, the temple stairs and bell, the courtyard fight, the boat at sea, the torii crossing and the snowy summit. | GPT Image |
+| **6. Build the scenes, then iterate** | Each concept was built into a playable 3D level. The loop was: play it, report bugs, let the agents fix them and improve the objects, repeat. | Claude Code, Three.js |
+
+The six chapters in `assets/levels/` (climb, pass, pines, temple, sea, summit) are the result of steps 5 and 6.
 
 ## Play locally
 
