@@ -1,5 +1,7 @@
 # Sumiro
 
+### ▶ [Play Sumiro in your browser — sumirro.vercel.app](https://sumirro.vercel.app/)
+
 **Sumiro** is a browser-based 3D action-platforming experience with an ink-and-paper visual style. The game is shipped here as a self-contained static web build: open its entry page through a local web server or deploy the included game directory to any static host.
 
 ## Contents
@@ -79,6 +81,8 @@ The `assets/` folder includes the game data loaded at runtime:
 The `bundle/` folder contains the compiled game engine, camera, player, collision, combat, HUD, rendering, audio, chapter, and effect modules. The file names contain content hashes, so they should not be renamed independently of `index.html` and the other modules that reference them.
 
 ## Deployment
+
+The live build is hosted on Vercel at **https://sumirro.vercel.app/**.
 
 Deploy the contents of `sumiro/sumiro` as a static site. No server-side runtime or environment variables are required.
 
