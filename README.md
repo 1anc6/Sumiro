@@ -61,11 +61,18 @@ On touch-first devices, `touch.js` adds on-screen controls. The game plays in la
 
 | Action | Touch |
 | --- | --- |
-| Move | Joystick at the bottom left; touching elsewhere on the left side brings it under your thumb (push fully to sprint) |
+| Move | Joystick at the bottom left; touching elsewhere on the left side brings it under your thumb. A light push walks, all the way sprints |
 | Look | Drag with the right thumb |
-| Jump / Strike / Step / Parry / Use | Buttons at the bottom right |
-| Pause | `II` button at the top right |
+| Jump, leap, climb (`Space`) | **Jump** |
+| Rest, read, ring, take (`E`) | **Use** |
+| Drink from the gourd (`F`) | **Drink** |
+| Ink Step (`Q`) | **Step** |
+| Strike / Parry (`J` / `K`) | **Strike** / **Parry** |
+| Hanging moves (`A`/`D`/`S` + `Space`) | Stick direction + **Jump** |
+| Pause (`Esc`) | `II` button at the top right |
 | Menus | Tap the menu items |
+
+On touch devices the in-game hints name these buttons instead of keys (for example "**Use** rest at the lantern"), the button a prompt asks for glows, and the pause menu's Controls page lists the touch controls.
 
 To rearrange the controls, pause the game and tap **Touch controls** at the bottom right. Drag any control to move it, tap one to change its size, set the overall opacity, then **Save**. **Reset** restores the default layout. The layout is saved on the device.
 

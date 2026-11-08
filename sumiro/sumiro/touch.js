@@ -63,7 +63,8 @@
     { id: 'jump',   label: 'Jump',   size: 60,  def: { r: 148, b: 52 },  btn: 0 },
     { id: 'dodge',  label: 'Step',   size: 60,  def: { r: 66,  b: 148 }, btn: 1 },
     { id: 'parry',  label: 'Parry',  size: 54,  def: { r: 145, b: 127 }, btn: 4 },
-    { id: 'use',    label: 'Use',    size: 50,  def: { r: 215, b: 55 },  btn: 3 },
+    { id: 'use',    label: 'Use',    size: 54,  def: { r: 218, b: 56 },  key: 'KeyE', k: 'e' }, // rest, read, ring, take
+    { id: 'drink',  label: 'Drink',  size: 46,  def: { r: 214, b: 124 }, key: 'KeyF', k: 'f' }, // drink from the gourd
     { id: 'pause',  label: 'II',     size: 44,  def: { r: 38,  t: 36 },  btn: 9 }
   ];
   var LAYOUT_KEY = 'sumiro.touchLayout.v1';
@@ -95,6 +96,9 @@
     '#tc .knob{position:absolute;left:50%;top:50%;width:44%;height:44%;border-radius:50%;background:rgba(42,38,34,.5);transform:translate(-50%,-50%)}' +
     '#tc button.ctl{border-radius:50%;border:1.5px solid rgba(42,38,34,.55);background:rgba(177,160,128,.35);color:#2a2622;font-family:Georgia,serif;font-style:italic;letter-spacing:.03em;padding:0;touch-action:none;-webkit-tap-highlight-color:transparent}' +
     '#tc button.ctl.down{background:rgba(42,38,34,.55);color:#efe6d2}' +
+    '#tc button.ctl.hot{border-color:#c8402c;box-shadow:0 0 0 2px rgba(200,64,44,.55);animation:tc-hot 1.4s ease-in-out infinite}' +
+    '@keyframes tc-hot{50%{box-shadow:0 0 0 6px rgba(200,64,44,.15)}}' +
+    '@media (prefers-reduced-motion:reduce){#tc button.ctl.hot{animation:none}}' +
     '#tc .c-pause{border-radius:8px!important;font-style:normal!important}' +
     '#tc .locked{display:none}' +
     // Editing
@@ -137,8 +141,8 @@
   var html = '<div class="zone move"></div><div class="zone look"></div>' +
     '<div class="ctl stick c-stick"><div class="knob"></div></div>';
   CONTROLS.forEach(function (c) {
-    if (c.btn === undefined) return;
-    html += '<button type="button" class="ctl c-' + c.id + '" data-id="' + c.id + '" aria-label="' +
+    if (c.id === 'stick') return;
+    html +='<button type="button" class="ctl c-' + c.id + '" data-id="' + c.id + '" aria-label="' +
       (c.id === 'pause' ? 'Pause' : c.label) + '">' + c.label + '</button>';
   });
   root.innerHTML = html;
@@ -173,7 +177,7 @@
     el.style.width = el.style.height = px + 'px';
     el.style.left = (x - px / 2) + 'px';
     el.style.top = (y - px / 2) + 'px';
-    if (c.btn !== undefined) el.style.fontSize = Math.round((c.id === 'pause' ? 16 : c.id === 'attack' ? 15 : 13) * scaleOf(c)) + 'px';
+    if (c.id !== 'stick') el.style.fontSize =Math.round((c.id === 'pause' ? 16 : c.id === 'attack' ? 15 : 13) * scaleOf(c)) + 'px';
   }
   var stickActive = false;
   function applyLayout() {
@@ -188,18 +192,36 @@
   window.addEventListener('resize', function () { setTimeout(applyLayout, 50); });
 
   // ---- Buttons ---------------------------------------------------------------
+  // Gamepad buttons go through the virtual pad. Use and Drink are sent as the
+  // E and F keys: on a gamepad the game puts both on one button, which would
+  // drink a gourd every time you rest or read.
   var editing = false;
+  var keysDown = {};
+  var buttonResets = [];
+  function sendKey(c, down) {
+    if (!!keysDown[c.key] === down) return;
+    keysDown[c.key] = down;
+    window.dispatchEvent(new KeyboardEvent(down ? 'keydown' : 'keyup', { code: c.key, key: c.k, bubbles: true }));
+  }
+  function releaseKeys() {
+    CONTROLS.forEach(function (c) { if (c.key) sendKey(c, false); });
+  }
   CONTROLS.forEach(function (c) {
-    if (c.btn === undefined) return;
-    var el = els[c.id], b = c.btn, ids = {};
+    if (c.id === 'stick') return;
+    var el = els[c.id], b = c.btn, ids = {}, count = 0;
+    buttonResets.push(function () { ids = {}; count = 0; });
     el.addEventListener('pointerdown', function (e) {
       if (editing) return;
       e.preventDefault();
       e.stopPropagation();
       try { el.setPointerCapture(e.pointerId); } catch (_) {}
       ids[e.pointerId] = 1;
-      holds[b] = (holds[b] || 0) + 1;
-      releaseAt[b] = performance.now() + MIN_PRESS_MS;
+      count++;
+      if (c.key) sendKey(c, true);
+      else {
+        holds[b] = (holds[b] || 0) + 1;
+        releaseAt[b] = performance.now() + MIN_PRESS_MS;
+      }
       el.classList.add('down');
       if (navigator.vibrate && navigator.userActivation && navigator.userActivation.hasBeenActive) {
         try { navigator.vibrate(8); } catch (_) {}
@@ -208,8 +230,10 @@
     function up(e) {
       if (!ids[e.pointerId]) return;
       delete ids[e.pointerId];
-      holds[b] = Math.max(0, (holds[b] || 0) - 1);
-      if (!holds[b]) el.classList.remove('down');
+      count = Math.max(0, count - 1);
+      if (c.key) { if (!count) sendKey(c, false); }
+      else holds[b] = Math.max(0, (holds[b] || 0) - 1);
+      if (!count) el.classList.remove('down');
     }
     el.addEventListener('pointerup', up);
     el.addEventListener('pointercancel', up);
@@ -294,6 +318,8 @@
     resetStick();
     lookId = null;
     holds = {};
+    releaseKeys();
+    buttonResets.forEach(function (f) { f(); });
     Array.prototype.forEach.call(root.querySelectorAll('button.down'), function (el) { el.classList.remove('down'); });
   }
 
@@ -473,6 +499,97 @@
   document.addEventListener('webkitfullscreenchange', nudgeResize);
   if (window.visualViewport) window.visualViewport.addEventListener('resize', nudgeResize);
 
+  // ---- Hints in mobile terms ---------------------------------------------------
+  // The game's prompts name keyboard keys ("E  rest at the lantern"). Rewrite
+  // them with the on-screen button names, and light up that button.
+  var HINT_RULES = [
+    [/^A D move along it\. W climb/, '[Stick left/right] move along it. [Stick up] climb'],
+    [/Left mouse or E\b/, '[Use]'],
+    [/J or Left mouse\b/, '[Strike]'],
+    [/Right mouse\b/, '[Parry]'],
+    [/W A S D\b/, '[Stick]'],
+    [/Hold D \+ Space\b/, '[Hold stick right + Jump]'],
+    [/\bD \+ Space\b/, '[Stick right + Jump]'],
+    [/\bA \+ Space\b/, '[Stick left + Jump]'],
+    [/\bS \+ Space\b/, '[Stick down + Jump]'],
+    [/(^|\. )Shift\b/, '$1[Full stick]'],
+    [/(^|\. )Space\b/, '$1[Jump]'],
+    [/(^|\. )E\b/, '$1[Use]'],
+    [/(^|\. )F\b/, '$1[Drink]'],
+    [/(^|\. )Q\b/, '$1[Step]'],
+    [/(^|\. )J\b/, '$1[Strike]'],
+    [/(^|\. )K\b/, '$1[Parry]']
+  ];
+  var LABEL_TO_CONTROL = { Use: 'use', Drink: 'drink', Jump: 'jump', Step: 'dodge', Strike: 'attack', Parry: 'parry' };
+  function esc(s) { return s.replace(/[&<>]/g, function (ch) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;' }[ch]; }); }
+  function translateHint(text) {
+    var t = text.replace(/\s+/g, ' ').trim(), hit = false;
+    if (t.indexOf('[') !== -1) return null;
+    HINT_RULES.forEach(function (r) {
+      if (r[0].test(t)) { t = t.replace(r[0], r[1]); hit = true; }
+    });
+    if (!hit) return null;
+    var keys = [];
+    var html = esc(t).replace(/\[([^\]]+)\]/g, function (_, k) {
+      Object.keys(LABEL_TO_CONTROL).forEach(function (l) { if (new RegExp('\\b' + l + '\\b').test(k)) keys.push(LABEL_TO_CONTROL[l]); });
+      return '<b>' + k + '</b>';
+    });
+    return { html: '<span>' + html + '</span>', keys: keys };
+  }
+  function translateLines() {
+    var lines = document.querySelectorAll('#ink-ui .line');
+    for (var n = 0; n < lines.length; n++) {
+      var el = lines[n];
+      if (el.innerHTML === el.getAttribute('data-tc-out')) continue;
+      var tr = translateHint(el.textContent || '');
+      if (tr) {
+        el.innerHTML = tr.html;
+        el.setAttribute('data-tc-keys', tr.keys.join(' '));
+      } else {
+        el.removeAttribute('data-tc-keys');
+      }
+      el.setAttribute('data-tc-out', el.innerHTML);
+    }
+    // Glow the button the current prompt asks for.
+    var prompt = document.querySelector('#ink-ui .line.prompt.on');
+    var hot = prompt ? (prompt.getAttribute('data-tc-keys') || '').split(' ') : [];
+    CONTROLS.forEach(function (c) {
+      if (c.id !== 'stick') els[c.id].classList.toggle('hot', hot.indexOf(c.id) !== -1);
+    });
+  }
+
+  // The pause menu's Controls page lists keyboard keys; show the touch controls.
+  function controlsPoems() {
+    var ab = readAbilities();
+    var p = [[
+      '<b>Stick</b> move. A light push walks, all the way sprints',
+      '<b>Drag the right side</b> look around',
+      '<b>Jump</b> jump, leap, climb',
+      '<b>Use</b> rest, read, ring, take',
+      '<b>Drink</b> drink from the gourd',
+      '<b>II</b> pause'
+    ], [
+      'Hanging from a ledge:',
+      '<b>Stick up</b> climb, <b>left or right</b> shimmy, <b>down</b> let go',
+      '<b>Stick down + Jump</b> leap back off the wall',
+      '<b>Stick left or right + Jump</b> hop to the next hold'
+    ]];
+    if (ab.inkStep) p.push(['<b>Step</b> Ink Step: a dodge on the ground, a dash in the air']);
+    if (ab.sword) p.push(['<b>Strike</b> strike, three in a row', '<b>Parry</b> parry as the blow falls']);
+    p.push(['<b>Touch controls</b> (bottom right of this menu) moves and resizes the buttons']);
+    return p.map(function (lines) { return '<div class="poem">' + lines.join('<br>') + '</div>'; }).join('');
+  }
+  function translateControlsPage() {
+    var menu = document.querySelector('#ink-ui .menu.on');
+    if (!menu) return;
+    var h = menu.querySelector('.head h1');
+    if (!h || h.textContent !== 'Controls') return;
+    var poems = menu.querySelector('.poems');
+    if (!poems || poems.getAttribute('data-tc') === '1') return;
+    poems.innerHTML = controlsPoems();
+    poems.setAttribute('data-tc', '1');
+  }
+
   // ---- Main loop: visibility, pause on portrait --------------------------------
   // Menus, credits and the ending are tapped directly, so hide controls then.
   var wasPortrait = false, lastShow = null;
@@ -483,6 +600,8 @@
   }
   function step(now) {
     fitCheck(now);
+    translateLines();
+    translateControlsPage();
     updateLocks(now);
     var portrait = portraitMq.matches;
     // Turning to portrait mid-play pauses the game, so nothing happens unseen.
